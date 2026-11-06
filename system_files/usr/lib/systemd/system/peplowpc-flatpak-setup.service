@@ -1,0 +1,13 @@
+[Unit]
+Description=PeplowPC: set up the app store and install the starter apps
+Documentation=https://github.com/Danvillian/peplowpc-os
+Wants=network-online.target
+After=network-online.target
+# Started by peplowpc-flatpak-setup.timer so it never delays login.
+# The script exits at once when the starter list has not changed.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/peplowpc/flatpak-setup
+Nice=10
+IOSchedulingClass=idle

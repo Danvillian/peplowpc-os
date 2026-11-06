@@ -1,0 +1,8 @@
+# Never commit the private signing key. It lives in your password manager and the SIGNING_SECRET repo secret.
+cosign.key
+keys/cosign.key
+*.key
+output/
+audit-*/
+branding/previews/
+__pycache__/

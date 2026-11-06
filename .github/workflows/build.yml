@@ -1,0 +1,141 @@
+name: Build PeplowPC OS image
+
+# Daily builds pick up Fedora security updates even when this repo has not changed.
+# A security OS that stops rebuilding is less safe than stock Fedora: watch this workflow.
+on:
+  schedule:
+    - cron: "17 9 * * *" # 09:17 UTC daily
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**", "branding/README.md"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: peplowpc-os
+  FEDORA_VERSION: "45"
+  IMAGE_TAG: stable
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel a main-branch run between push and sign; only superseded PR builds.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shellcheck
+        run: |
+          shellcheck build_files/*.sh system_files/usr/libexec/peplowpc/* tools/*.sh
+      - name: Validate JSON
+        run: |
+          for f in system_files/usr/share/peplowpc/*.json; do python3 -m json.tool "$f" >/dev/null && echo "ok $f"; done
+
+  build:
+    needs: lint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      - name: Image coordinates
+        id: meta
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "registry=ghcr.io/${owner}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/${owner}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${FEDORA_VERSION}.$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Require signing key on main
+        if: github.event_name != 'pull_request'
+        run: |
+          if [[ ! -s keys/cosign.pub ]]; then
+            echo "::error::keys/cosign.pub is missing. See docs/BUILD.md, 'One-time setup'."
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          podman build \
+            --pull=newer \
+            --build-arg FEDORA_VERSION="${FEDORA_VERSION}" \
+            --build-arg IMAGE_NAME="${IMAGE_NAME}" \
+            --build-arg IMAGE_REGISTRY="${{ steps.meta.outputs.registry }}" \
+            --build-arg IMAGE_TAG="${IMAGE_TAG}" \
+            --build-arg IMAGE_VERSION="${{ steps.meta.outputs.version }}" \
+            --label org.opencontainers.image.version="${{ steps.meta.outputs.version }}" \
+            --label org.opencontainers.image.source="https://github.com/${{ github.repository }}" \
+            --label org.opencontainers.image.revision="${{ github.sha }}" \
+            -t "${{ steps.meta.outputs.image }}:${IMAGE_TAG}" \
+            -f Containerfile .
+
+      # Order matters: push a dated tag, sign it, prove an installed system would accept it,
+      # and only then move :stable. A failure part-way leaves :stable on the last good build.
+      - name: Push dated tag
+        if: github.event_name != 'pull_request'
+        id: push
+        run: |
+          img="${{ steps.meta.outputs.image }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          dated="${IMAGE_TAG}-${{ steps.meta.outputs.date }}"
+          podman tag "${img}:${IMAGE_TAG}" "${img}:${dated}"
+          podman push --digestfile /tmp/digest "${img}:${dated}"
+          echo "digest=$(cat /tmp/digest)" >> "$GITHUB_OUTPUT"
+
+      # Pinned to cosign v2: installed systems read signatures in the v2 "attachment" format.
+      # cosign v3 defaults to a new bundle format they cannot read (see docs/ARCHITECTURE.md).
+      - uses: sigstore/cosign-installer@v3
+        if: github.event_name != 'pull_request'
+        with:
+          cosign-release: "v2.4.1"
+
+      - name: Sign
+        if: github.event_name != 'pull_request'
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          COSIGN_PASSWORD: ""
+        run: |
+          cosign login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY \
+            "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
+
+      - name: Verify the way an installed system will
+        if: github.event_name != 'pull_request'
+        run: |
+          img="${{ steps.meta.outputs.image }}"
+          ref="${img}@${{ steps.push.outputs.digest }}"
+          cosign verify --key keys/cosign.pub "$ref" >/dev/null
+          # Use the policy and registry config baked into the image itself.
+          ctr=$(podman create "${img}:${IMAGE_TAG}")
+          mkdir -p /tmp/sigcheck/registries.d
+          podman cp "$ctr:/etc/containers/policy.json" /tmp/sigcheck/policy.json
+          podman cp "$ctr:/etc/containers/registries.d/peplowpc.yaml" /tmp/sigcheck/registries.d/
+          podman rm "$ctr"
+          sudo install -Dm0644 keys/cosign.pub /etc/pki/containers/peplowpc.pub
+          # skopeo copy enforces the policy exactly like bootc does when updating.
+          skopeo --policy /tmp/sigcheck/policy.json --registries.d /tmp/sigcheck/registries.d \
+            copy "docker://${ref}" "oci:/tmp/sigcheck/oci:check"
+          rm -rf /tmp/sigcheck/oci
+          echo "Installed-system signature check passed for ${{ steps.push.outputs.digest }}"
+
+      - name: Publish stable tags
+        if: github.event_name != 'pull_request'
+        run: |
+          img="${{ steps.meta.outputs.image }}"
+          # Copy the exact signed manifest, so the tags point at the digest that was signed.
+          for tag in "${IMAGE_TAG}" "${FEDORA_VERSION}"; do
+            skopeo copy --all --preserve-digests \
+              "docker://${img}@${{ steps.push.outputs.digest }}" "docker://${img}:${tag}"
+          done

@@ -1,0 +1,51 @@
+# PeplowPC OS desktop defaults. Users can change any of these in Settings.
+
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+accent-color='green'
+clock-format='12h'
+
+[org.gnome.desktop.background]
+picture-uri='file:///usr/share/backgrounds/peplowpc/peplowpc-dots.png'
+picture-uri-dark='file:///usr/share/backgrounds/peplowpc/peplowpc-dots.png'
+picture-options='zoom'
+primary-color='#0B0D14'
+
+[org.gnome.desktop.screensaver]
+picture-uri='file:///usr/share/backgrounds/peplowpc/peplowpc-tile.png'
+lock-enabled=true
+lock-delay=uint32 0
+
+[org.gnome.desktop.session]
+idle-delay=uint32 300
+
+[org.gnome.desktop.notifications]
+show-in-lock-screen=false
+
+[org.gnome.desktop.privacy]
+report-technical-problems=false
+send-software-usage-stats=false
+remove-old-trash-files=true
+remove-old-temp-files=true
+old-files-age=uint32 30
+
+[org.gnome.system.location]
+enabled=false
+
+[org.gnome.desktop.media-handling]
+autorun-never=true
+
+[org.gnome.desktop.peripherals.touchpad]
+tap-to-click=true
+
+[org.gnome.desktop.wm.preferences]
+button-layout='appmenu:minimize,maximize,close'
+
+[org.gnome.mutter]
+center-new-windows=true
+
+[org.gnome.shell]
+favorite-apps=['org.mozilla.firefox.desktop', 'org.mozilla.Thunderbird.desktop', 'org.gnome.Nautilus.desktop', 'org.libreoffice.LibreOffice.writer.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
+
+[org.gnome.login-screen]
+logo='/usr/share/pixmaps/peplowpc-gdm-logo.png'

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false">
+    <name>PeplowPC Dots</name>
+    <filename>/usr/share/backgrounds/peplowpc/peplowpc-dots.png</filename>
+    <filename-dark>/usr/share/backgrounds/peplowpc/peplowpc-dots.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#0B0D14</pcolor>
+  </wallpaper>
+  <wallpaper deleted="false">
+    <name>PeplowPC Tile</name>
+    <filename>/usr/share/backgrounds/peplowpc/peplowpc-tile.png</filename>
+    <filename-dark>/usr/share/backgrounds/peplowpc/peplowpc-tile.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#0B0D14</pcolor>
+  </wallpaper>
+</wallpapers>
