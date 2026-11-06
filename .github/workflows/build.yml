@@ -126,7 +126,7 @@ jobs:
           sudo install -Dm0644 keys/cosign.pub /etc/pki/containers/peplowpc.pub
           # skopeo copy enforces the policy exactly like bootc does when updating.
           skopeo --policy /tmp/sigcheck/policy.json --registries.d /tmp/sigcheck/registries.d \
-            copy "docker://${ref}" "oci:/tmp/sigcheck/oci:check"
+            copy --remove-signatures "docker://${ref}" "oci:/tmp/sigcheck/oci:check"
           rm -rf /tmp/sigcheck/oci
           echo "Installed-system signature check passed for ${{ steps.push.outputs.digest }}"
 
