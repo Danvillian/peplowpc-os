@@ -40,10 +40,19 @@ jobs:
         run: |
           sed -i "s|ghcr.io/danvillian/peplowpc-os:stable|${{ steps.img.outputs.image }}|g" disk_config/iso.toml
 
+      - name: Pull the ISO builder (retries on network errors)
+        run: |
+          for i in 1 2 3 4 5; do
+            sudo podman pull "${BIB_IMAGE}" && exit 0
+            echo "Pull failed (attempt $i), retrying in 20 seconds"
+            sleep 20
+          done
+          exit 1
+
       - name: Build ISO
         run: |
           mkdir -p output
-          sudo podman run --rm --privileged --pull=newer \
+          sudo podman run --rm --privileged --pull=never \
             --security-opt label=type:unconfined_t \
             -v ./disk_config/iso.toml:/config.toml:ro \
             -v ./output:/output \
