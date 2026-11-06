@@ -74,3 +74,19 @@ progressbar progress {
     background-image: none;
     border-color: @peplowpc_lime_dark;
 }
+
+/* Selected rows in lists (language, keyboard, disks): lime with ink text instead of GTK blue. */
+treeview.view:selected,
+treeview.view:selected:focus,
+list row:selected,
+list row:selected:focus,
+row:selected {
+    background-color: @peplowpc_lime;
+    background-image: none;
+    color: @peplowpc_ink;
+}
+
+row:selected label,
+treeview.view:selected label {
+    color: @peplowpc_ink;
+}

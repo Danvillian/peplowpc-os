@@ -78,7 +78,7 @@ global default (needs NetworkManager 1.52 or newer; check `NetworkManager --prin
 | dnf countme in repo files | on | 0 | untested |
 | ABRT crash reporting | installed on some editions | removed if present | untested |
 | GNOME problem reporting, usage stats | off | off (pinned) | verified 2026-11-06 |
-| Location services | on | off; apps must ask after the user turns it on | verified 2026-11-06 |
+| Location services | on (and GNOME's first-run setup switches it on) | off; first-run privacy page skipped so it stays off (`usr/share/gnome-initial-setup/vendor.conf`) | verified 2026-11-06 |
 | Firefox telemetry, studies, Pocket, sponsored content | on | off by policy | untested |
 
 ## Desktop

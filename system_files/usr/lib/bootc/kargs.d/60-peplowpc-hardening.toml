@@ -9,4 +9,8 @@ kargs = [
   "randomize_kstack_offset=on",
   "vsyscall=none",
   "debugfs=off",
+  # Graphical boot splash (PeplowPC theme) and a single graphical disk-unlock prompt. Fedora's
+  # installer used to add these; the container-built installer does not.
+  "rhgb",
+  "quiet",
 ]

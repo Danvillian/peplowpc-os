@@ -116,6 +116,11 @@ This follows Fedora's current method (image-builder "generic-iso"; bootc-image-b
 The older `anaconda-iso` path is still available as a fallback (`builder: legacy` in the ISO workflow,
 config in `disk_config/iso.toml`). It works but looks like Fedora's installer.
 
+Anaconda copies some boot settings from the installer into the installed system. The installer runs with
+`selinux=0`, so the PeplowPC installer profile (`installer/files/etc/anaconda/profile.d/peplowpc.conf`)
+removes `selinux` and `console` from that list. Without this, every install had SELinux switched off
+(found in testing 2026-11-06; `tools/check-baseline.sh` now checks SELinux is enforcing).
+
 Known upstream issue: a bootc system installed through Anaconda logs a failed
 `systemd-remount-fs.service` at boot (Fedora atomic-desktops tracker #72). Harmless so far; watch it.
 
