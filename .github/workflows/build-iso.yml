@@ -58,7 +58,7 @@ jobs:
           (cd output && sha256sum ./*.iso > SHA256SUMS)
           ls -lh output
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: peplowpc-os-iso
           path: |
