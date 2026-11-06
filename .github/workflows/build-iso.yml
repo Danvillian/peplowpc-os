@@ -2,12 +2,25 @@ name: Build PeplowPC OS installer (ISO)
 
 # Run by hand when you want a new installer. Installed systems update themselves from the
 # signed image, so the ISO only needs rebuilding for installer fixes or a new Fedora release.
+#
+# builder = branded (default): PeplowPC-branded installer built from installer/Containerfile with
+#           Fedora's image-builder ("generic-iso"). See docs/ARCHITECTURE.md, "Installer".
+# builder = legacy: the older bootc-image-builder "anaconda-iso" (Fedora-looking installer).
+#           Kept as a fallback while the branded installer is new.
 on:
   workflow_dispatch:
+    inputs:
+      builder:
+        description: "Installer type"
+        type: choice
+        options: [branded, legacy]
+        default: branded
 
 env:
   IMAGE_NAME: peplowpc-os
   IMAGE_TAG: stable
+  FEDORA_VERSION: "45"
+  IB_IMAGE: ghcr.io/osbuild/image-builder-cli:latest
   BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
 
 jobs:
@@ -33,23 +46,66 @@ jobs:
         run: |
           image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:${IMAGE_TAG}"
           cosign verify --key keys/cosign.pub "$image" >/dev/null
-          sudo podman pull "$image"
+          for i in 1 2 3 4 5; do sudo podman pull "$image" && break; echo "Retry $i"; sleep 20; done
+          sudo podman image exists "$image"
           echo "image=$image" >> "$GITHUB_OUTPUT"
 
-      - name: Point the installer config at this repo's image
+      # ---------------------------------------------------------------- branded installer
+      - name: Build the branded installer image
+        if: inputs.builder == 'branded'
         run: |
-          sed -i "s|ghcr.io/danvillian/peplowpc-os:stable|${{ steps.img.outputs.image }}|g" disk_config/iso.toml
-
-      - name: Pull the ISO builder (retries on network errors)
-        run: |
-          for i in 1 2 3 4 5; do
-            sudo podman pull "${BIB_IMAGE}" && exit 0
-            echo "Pull failed (attempt $i), retrying in 20 seconds"
-            sleep 20
+          for i in 1 2 3; do
+            sudo podman build --pull=newer \
+              --build-arg FEDORA_VERSION="${FEDORA_VERSION}" \
+              --build-arg PAYLOAD_REF="${{ steps.img.outputs.image }}" \
+              -t localhost/peplowpc-installer:latest \
+              -f installer/Containerfile . && exit 0
+            echo "Build attempt $i failed, retrying in 30 seconds"; sleep 30
           done
           exit 1
 
-      - name: Build ISO
+      - name: Pull image-builder (retries on network errors)
+        if: inputs.builder == 'branded'
+        run: |
+          for i in 1 2 3 4 5; do
+            sudo podman pull "${IB_IMAGE}" && exit 0
+            echo "Pull failed (attempt $i), retrying in 20 seconds"; sleep 20
+          done
+          exit 1
+
+      - name: Build branded ISO
+        if: inputs.builder == 'branded'
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged --pull=never \
+            --security-opt label=type:unconfined_t \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            -v ./output:/output \
+            "${IB_IMAGE}" \
+            build \
+            --bootc-ref localhost/peplowpc-installer:latest \
+            --bootc-installer-payload-ref "${{ steps.img.outputs.image }}" \
+            --bootc-default-fs ext4 \
+            --output-dir /output \
+            generic-iso
+
+      # ---------------------------------------------------------------- legacy installer
+      - name: Point the legacy installer config at this repo's image
+        if: inputs.builder == 'legacy'
+        run: |
+          sed -i "s|ghcr.io/danvillian/peplowpc-os:stable|${{ steps.img.outputs.image }}|g" disk_config/iso.toml
+
+      - name: Pull bootc-image-builder (retries on network errors)
+        if: inputs.builder == 'legacy'
+        run: |
+          for i in 1 2 3 4 5; do
+            sudo podman pull "${BIB_IMAGE}" && exit 0
+            echo "Pull failed (attempt $i), retrying in 20 seconds"; sleep 20
+          done
+          exit 1
+
+      - name: Build legacy ISO
+        if: inputs.builder == 'legacy'
         run: |
           mkdir -p output
           sudo podman run --rm --privileged --pull=never \
@@ -61,15 +117,23 @@ jobs:
             --type anaconda-iso \
             --rootfs btrfs \
             "${{ steps.img.outputs.image }}"
+
+      # ---------------------------------------------------------------- package
+      - name: Name and checksum the ISO
+        run: |
           sudo chown -R "$(id -u):$(id -g)" output
+          find output -type f | head -20
           iso="$(find output -name '*.iso' | head -n1)"
-          mv "$iso" "output/PeplowPC-OS-$(date -u +%Y%m%d).iso"
+          [[ -n "$iso" ]] || { echo "::error::No ISO produced"; exit 1; }
+          suffix=""
+          [[ "${{ inputs.builder }}" == legacy ]] && suffix="-legacy"
+          mv "$iso" "output/PeplowPC-OS-$(date -u +%Y%m%d)${suffix}.iso"
           (cd output && sha256sum ./*.iso > SHA256SUMS)
           ls -lh output
 
       - uses: actions/upload-artifact@v4
         with:
-          name: peplowpc-os-iso
+          name: peplowpc-os-iso-${{ inputs.builder }}
           path: |
             output/*.iso
             output/SHA256SUMS
