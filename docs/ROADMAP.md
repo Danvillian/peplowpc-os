@@ -8,26 +8,26 @@ Goal: a signed image builds every day, installs in a VM, and every line in `SECU
 
 **Build**
 - [x] Repo scaffold: Containerfile, build script, hardening files, branding, CI, docs (2026-11-05).
-- [ ] One-time setup done (`BUILD.md`): GitHub repo, cosign key pair, `SIGNING_SECRET`, package made public.
-- [ ] First green run of `build.yml`: image signed, verified with cosign and with the installed-system policy check, `:stable` moved.
-- [ ] `glib-compile-schemas --strict` passes against Fedora 45 / GNOME 51 schemas (catches renamed settings).
-- [ ] First ISO from `build-iso.yml`.
+- [x] One-time setup done (`BUILD.md`): GitHub repo, cosign key pair, `SIGNING_SECRET`, package made public.
+- [x] First green run of `build.yml`: image signed, verified with cosign and with the installed-system policy check, `:stable` moved.
+- [x] `glib-compile-schemas --strict` passes against Fedora 45 / GNOME 51 schemas (catches renamed settings).
+- [x] First ISO from `build-iso.yml` (2026-11-06).
 
 **Install and first boot (Hyper-V Gen 2, Secure Boot on)**
 - [x] Installer asks for an encryption passphrase by default (2026-11-06).
 - [ ] **Boot splash fix:** on the disk-unlock screen the PeplowPC logo overlaps the passphrase prompt text and keyboard icon (photo 2026-11-06). Move the logo down: `WatermarkVerticalAlignment=.45` to about `.70` in `system_files/usr/share/plymouth/themes/peplowpc/peplowpc.plymouth`, and check it on both the normal boot and the unlock screen.
 - [ ] **Branded installer:** installer still shows Fedora's sidebar and logo (only the title says PeplowPC OS). Move to a container-built installer (`bootc-installer`) with PeplowPC artwork before any public release (Fedora trademark).
-- [ ] GNOME first-boot setup creates the user account.
-- [ ] Signed updates: after one restart `sudo rpm-ostree status` shows `ostree-image-signed:`, and it stays that way after `sudo peplowpc-update` plus another restart. (First test 2026-11-05 found a plain `bootc upgrade` undid it; fixed with `peplowpc-update`.)
-- [ ] `peplowpc-flatpak-setup` installed every starter app; `flatpak remotes` shows only `flathub-verified`.
+- [x] GNOME first-boot setup creates the user account.
+- [x] Signed updates: after one restart `sudo rpm-ostree status` shows `ostree-image-signed:`, and it stays that way after `sudo peplowpc-update` plus another restart. (First test 2026-11-05 found a plain `bootc upgrade` undid it; fixed with `peplowpc-update`.)
+- [x] `peplowpc-flatpak-setup` installed every starter app; `flatpak remotes` shows only `flathub-verified`.
 - [ ] Branding: boot splash, login logo, wallpaper, lime accent in apps, Settings > About shows PeplowPC OS.
 
-**Verify the baseline**
-- [ ] `sysctl` values, blocked modules (`modprobe dccp` fails).
-- [ ] Kernel args present on a **fresh install** (`cat /proc/cmdline`). The installer may skip `kargs.d`, and bootc only applies changes between versions, so a miss here is permanent for that machine. If missing, add them to the kickstart in `disk_config/iso.toml` (`bootloader --append`).
+**Verify the baseline** (`tools/check-baseline.sh`: 71 passed, 0 failed on a fresh install, 2026-11-06)
+- [x] `sysctl` values, blocked modules (`modprobe dccp` fails).
+- [x] Kernel args present on a **fresh install** (`cat /proc/cmdline`). The installer may skip `kargs.d`, and bootc only applies changes between versions, so a miss here is permanent for that machine. If missing, add them to the kickstart in `disk_config/iso.toml` (`bootloader --append`).
 - [ ] Firewall: `firewall-cmd --get-default-zone` is `peplowpc`; port scan from another VM finds nothing open.
-- [ ] DNS: `resolvectl status` shows Quad9 with DNSOverTLS; router DNS not used (see SECURITY-BASELINE note).
-- [ ] Time: `chronyc -N authdata` shows NTS for all sources.
+- [x] DNS: `resolvectl status` shows Quad9 with DNSOverTLS; router DNS not used (see SECURITY-BASELINE note).
+- [x] Time: `chronyc -N authdata` shows NTS for all sources.
 - [ ] Wi-Fi MAC randomization (needs a USB Wi-Fi adapter passed to a VM, or a spare laptop).
 - [ ] Firefox: `about:policies` shows all policies active; uBlock Origin installed; GPC on.
 - [ ] Idle network audit, 300 s: only the hosts in "Expected outbound connections".
