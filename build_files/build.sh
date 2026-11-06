@@ -31,6 +31,9 @@ log "Packages"
 dnf5 -y install jq firefox
 # Crash reporters upload data off the machine. Not shipped (see SECURITY-BASELINE, Telemetry).
 remove_if_installed abrt abrt-desktop abrt-gui gnome-abrt
+# Fedora's add-on that stamps the Fedora logo on the wallpaper. PeplowPC OS has its own branding,
+# and Fedora's trademark guidelines ask derivatives not to mix their logo in.
+remove_if_installed gnome-shell-extension-background-logo
 dnf5 clean all
 
 # --------------------------------------------------------------------------------------------

@@ -149,12 +149,14 @@ def glow(cx, cy, r, color, opacity, gid):
 def wallpaper_dots():
     W, H = 3840, 2160
     body = dot_grid(W, H, 52, 2.6, MUTED, 0.13)
-    body += glow(W * 0.86, H * 0.92, 1500, LIME, 0.10, "g1")
+    body += glow(2660, 1420, 1300, LIME, 0.11, "g1")  # centered behind the tile
     body += glow(W * 0.08, H * 0.04, 1100, "#5B6BFF", 0.06, "g2")
-    # Large tile, partly off the bottom-right edge, plus an outline echo behind it.
-    size = 1500
-    x, y = W - size * 0.80, H - size * 0.72
-    body += (f'<g transform="translate({x - 150:.0f} {y - 120:.0f}) scale({size/64:.3f})">'
+    # Tile with an outline echo, kept inside the area that survives GNOME's "zoom" crop on every
+    # common screen shape. On a 4:3 screen only the middle 2880 px of this 3840 px image show
+    # (x 480 to 3360), so the tile and its echo stay within that box with a margin.
+    size = 880
+    x, y = 3360 - size - 260, H - size - 300
+    body += (f'<g transform="translate({x - 90:.0f} {y - 70:.0f}) scale({size/64:.3f})">'
              f'<rect x="6" y="6" width="52" height="52" rx="14" fill="none" stroke="{LIME}" '
              f'stroke-opacity="0.28" stroke-width="0.35" transform="rotate(6 32 32)"/></g>')
     body += tile(x, y, size)
