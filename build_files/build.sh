@@ -100,6 +100,17 @@ else
 fi
 
 # --------------------------------------------------------------------------------------------
+log "Package sources for the installer builder"
+# Fedora 45 moved repo files from /etc/yum.repos.d to /usr/share/dnf5/repos.d. bootc-image-builder
+# still reads /etc/yum.repos.d to build the installer ISO, and fails with "no enabled repositories"
+# without them. Same files, same names: dnf reads both places, and /etc simply takes precedence.
+install -d /etc/yum.repos.d
+if ! compgen -G "/etc/yum.repos.d/*.repo" >/dev/null && compgen -G "/usr/share/dnf5/repos.d/*.repo" >/dev/null; then
+    cp -a /usr/share/dnf5/repos.d/*.repo /etc/yum.repos.d/
+fi
+ls /etc/yum.repos.d/
+
+# --------------------------------------------------------------------------------------------
 log "Telemetry off"
 systemctl mask rpm-ostree-countme.timer || true
 shopt -s nullglob
