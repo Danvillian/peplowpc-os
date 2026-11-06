@@ -74,7 +74,15 @@ Pull requests build the image but do not publish or sign it.
 3. Processor: 2 or more virtual processors.
 4. Start, install with "Encrypt my data" ticked, finish GNOME setup, wait a few minutes with networking on
    for the starter apps and signed-update switch, then restart once.
-5. Work through the Phase 0 checklist in `ROADMAP.md`. Useful commands:
+5. Run the baseline check inside the VM (as your normal user, it asks for your password once):
+
+   ```bash
+   curl -fsSLO https://raw.githubusercontent.com/Danvillian/peplowpc-os/main/tools/check-baseline.sh
+   bash check-baseline.sh
+   ```
+
+   It prints PASS or FAIL for every setting in `SECURITY-BASELINE.md`. Then work through the rest of the
+   Phase 0 checklist in `ROADMAP.md`. Useful commands:
 
    ```bash
    sudo bootc status                      # which image, signed or not, staged update
