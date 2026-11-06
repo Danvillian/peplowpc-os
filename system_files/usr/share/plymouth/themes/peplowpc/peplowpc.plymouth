@@ -1,0 +1,30 @@
+[Plymouth Theme]
+Name=PeplowPC
+Description=PeplowPC boot splash: lime P tile on ink, with a spinner below.
+ModuleName=two-step
+
+[two-step]
+Font=Sans 12
+TitleFont=Sans 30
+ImageDir=/usr/share/plymouth/themes/peplowpc
+DialogHorizontalAlignment=.5
+DialogVerticalAlignment=.382
+TitleHorizontalAlignment=.5
+TitleVerticalAlignment=.382
+HorizontalAlignment=.5
+VerticalAlignment=.75
+WatermarkHorizontalAlignment=.5
+WatermarkVerticalAlignment=.45
+Transition=none
+TransitionDuration=0.0
+BackgroundStartColor=0x0b0d14
+BackgroundEndColor=0x0b0d14
+
+[boot-up]
+UseEndAnimation=false
+
+[shutdown]
+UseEndAnimation=false
+
+[reboot]
+UseEndAnimation=false

@@ -1,0 +1,9 @@
+enable peplowpc-flatpak-setup.timer
+enable peplowpc-flatpak-update.timer
+enable peplowpc-signed-switch.timer
+enable bootc-fetch-apply-updates.timer
+enable firewalld.service
+enable chronyd.service
+disable flatpak-add-fedora-repos.service
+disable rpm-ostreed-automatic.timer
+disable rpm-ostree-countme.timer

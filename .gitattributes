@@ -1,0 +1,5 @@
+# Everything in this repo runs on Linux: keep LF line endings even when edited on Windows.
+* text=auto eol=lf
+*.png binary
+*.ttf binary
+*.iso binary

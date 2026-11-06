@@ -1,0 +1,9 @@
+[Unit]
+Description=PeplowPC: install starter apps shortly after boot, retry hourly until done
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=1h
+
+[Install]
+WantedBy=timers.target

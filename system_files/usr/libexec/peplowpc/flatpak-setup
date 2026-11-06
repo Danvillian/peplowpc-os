@@ -1,0 +1,60 @@
+#!/usr/bin/bash
+# PeplowPC app store setup.
+# 1. Use Flathub, limited to verified apps (published by the real developer), as the only app source.
+# 2. Install the starter apps in /usr/share/peplowpc/flatpaks.list.
+# Runs again whenever that list changes in a new PeplowPC OS image. Never removes apps the user installed.
+set -uo pipefail
+
+LIST=/usr/share/peplowpc/flatpaks.list
+STATE_DIR=/var/lib/peplowpc
+STAMP="$STATE_DIR/flatpak-setup.sha256"
+TRIES="$STATE_DIR/flatpak-setup.tries"
+MAX_TRIES=24   # with the hourly timer: give up on an unavailable app after about a day
+REMOTE=flathub-verified
+REMOTE_URL=https://dl.flathub.org/repo/flathub.flatpakrepo
+
+want="$(sha256sum "$LIST" | cut -d' ' -f1)"
+if [[ -f "$STAMP" && "$(cat "$STAMP")" == "$want" ]]; then
+    echo "Starter apps already up to date."
+    exit 0
+fi
+
+REMOTES_DONE="$STATE_DIR/remotes-replaced"
+if [[ ! -f "$REMOTES_DONE" ]]; then
+    # Fedora's remotes are replaced once only, so a user who adds them back later keeps them.
+    for r in fedora fedora-testing flathub; do
+        flatpak remote-delete --system --force "$r" 2>/dev/null && echo "Removed remote: $r"
+    done
+    install -d -m0755 "$STATE_DIR"
+    touch "$REMOTES_DONE"
+fi
+
+flatpak remote-add --system --if-not-exists --subset=verified \
+    --title="Flathub (verified apps)" "$REMOTE" "$REMOTE_URL" || exit 1
+
+failed=()
+while IFS= read -r line; do
+    app="${line%%#*}"
+    app="${app//[[:space:]]/}"
+    [[ -z "$app" ]] && continue
+    if flatpak --system info "$app" >/dev/null 2>&1; then
+        continue
+    fi
+    echo "Installing $app"
+    flatpak --system install --noninteractive --assumeyes "$REMOTE" "$app" || failed+=("$app")
+done <"$LIST"
+
+install -d -m0755 "$STATE_DIR"
+if ((${#failed[@]})); then
+    tries=$(( $(cat "$TRIES" 2>/dev/null || echo 0) + 1 ))
+    echo "$tries" >"$TRIES"
+    if ((tries < MAX_TRIES)); then
+        echo "Could not install: ${failed[*]} (attempt $tries of $MAX_TRIES, will retry)" >&2
+        exit 1
+    fi
+    echo "Giving up on: ${failed[*]} after $tries attempts. Check the app IDs in $LIST." >&2
+fi
+
+rm -f "$TRIES"
+echo "$want" >"$STAMP"
+echo "Starter app setup finished."

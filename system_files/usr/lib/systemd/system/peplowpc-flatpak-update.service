@@ -1,0 +1,11 @@
+[Unit]
+Description=PeplowPC: update apps
+Wants=network-online.target
+After=network-online.target peplowpc-flatpak-setup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak --system update --noninteractive --assumeyes
+ExecStart=/usr/bin/flatpak --system uninstall --unused --noninteractive --assumeyes
+Nice=10
+IOSchedulingClass=idle

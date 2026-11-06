@@ -1,0 +1,9 @@
+[Unit]
+Description=PeplowPC: turn on signed updates shortly after first boot, retry until done
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=30min
+
+[Install]
+WantedBy=timers.target

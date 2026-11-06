@@ -1,0 +1,24 @@
+# PeplowPC OS starter apps, installed from Flathub (verified apps only) on first boot.
+# Keep this list short: every app is something the user has to keep updated and trust.
+# Firefox is part of the system image, not this list.
+
+# Everyday
+org.mozilla.Thunderbird          # Email
+org.libreoffice.LibreOffice      # Documents, spreadsheets, slides
+org.gnome.Papers                 # PDF viewer
+org.gnome.Loupe                  # Photos
+org.gnome.Showtime               # Videos
+org.gnome.Decibels               # Audio
+org.gnome.Snapshot               # Camera
+org.gnome.SimpleScan             # Scanner
+
+# Small tools
+org.gnome.TextEditor
+org.gnome.Calculator
+org.gnome.Calendar
+org.gnome.Contacts
+org.gnome.clocks
+org.gnome.Weather
+org.gnome.Characters
+org.gnome.font-viewer
+org.gnome.baobab                 # Disk usage

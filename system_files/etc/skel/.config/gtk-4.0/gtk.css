@@ -1,0 +1,14 @@
+/* PeplowPC accent: lime with ink text, matching peplowpc.com.
+   GNOME's built-in accent list has no lime, so apps get it here (GTK 4.16+ CSS variables). */
+:root {
+  --accent-bg-color: #C6F432;
+  --accent-fg-color: #0B0D14;
+  --accent-color: #C6F432;
+}
+
+/* Lime text is unreadable on white, so light mode uses a deep olive for accent-colored text. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --accent-color: #4A6200;
+  }
+}

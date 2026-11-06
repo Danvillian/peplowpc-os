@@ -1,0 +1,62 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisablePocket": true,
+    "DisableFeedbackCommands": true,
+    "DontCheckDefaultBrowser": true,
+
+    "HttpsOnlyMode": "enabled",
+    "DNSOverHTTPS": {
+      "Enabled": true,
+      "ProviderURL": "https://dns.quad9.net/dns-query",
+      "Fallback": true,
+      "Locked": false
+    },
+    "EnableTrackingProtection": {
+      "Value": true,
+      "Cryptomining": true,
+      "Fingerprinting": true,
+      "EmailTracking": true,
+      "Locked": false
+    },
+    "Cookies": {
+      "Behavior": "reject-tracker-and-partition-foreign",
+      "Locked": false
+    },
+
+    "SearchEngines": {
+      "Default": "DuckDuckGo"
+    },
+    "FirefoxHome": {
+      "SponsoredTopSites": false,
+      "SponsoredPocket": false,
+      "Pocket": false,
+      "Snippets": false,
+      "Locked": false
+    },
+    "FirefoxSuggest": {
+      "SponsoredSuggestions": false,
+      "ImproveSuggest": false,
+      "Locked": false
+    },
+    "UserMessaging": {
+      "ExtensionRecommendations": false,
+      "FeatureRecommendations": false,
+      "MoreFromMozilla": false,
+      "Locked": false
+    },
+
+    "ExtensionSettings": {
+      "uBlock0@raymondhill.net": {
+        "installation_mode": "force_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+      }
+    },
+
+    "Preferences": {
+      "privacy.globalprivacycontrol.enabled": { "Value": true, "Status": "default" },
+      "browser.contentblocking.category": { "Value": "strict", "Status": "default" }
+    }
+  }
+}

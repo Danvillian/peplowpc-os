@@ -1,0 +1,68 @@
+name: Build PeplowPC OS installer (ISO)
+
+# Run by hand when you want a new installer. Installed systems update themselves from the
+# signed image, so the ISO only needs rebuilding for installer fixes or a new Fedora release.
+on:
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: peplowpc-os
+  IMAGE_TAG: stable
+  BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
+
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      - uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.1"
+
+      - name: Pull and verify the signed image
+        id: img
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:${IMAGE_TAG}"
+          cosign verify --key keys/cosign.pub "$image" >/dev/null
+          sudo podman pull "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Point the installer config at this repo's image
+        run: |
+          sed -i "s|ghcr.io/danvillian/peplowpc-os:stable|${{ steps.img.outputs.image }}|g" disk_config/iso.toml
+
+      - name: Build ISO
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged --pull=newer \
+            --security-opt label=type:unconfined_t \
+            -v ./disk_config/iso.toml:/config.toml:ro \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            "${BIB_IMAGE}" \
+            --type anaconda-iso \
+            --rootfs btrfs \
+            "${{ steps.img.outputs.image }}"
+          sudo chown -R "$(id -u):$(id -g)" output
+          iso="$(find output -name '*.iso' | head -n1)"
+          mv "$iso" "output/PeplowPC-OS-$(date -u +%Y%m%d).iso"
+          (cd output && sha256sum ./*.iso > SHA256SUMS)
+          ls -lh output
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: peplowpc-os-iso
+          path: |
+            output/*.iso
+            output/SHA256SUMS
+          retention-days: 7
+          compression-level: 0

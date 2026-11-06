@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>PeplowPC</short>
+  <description>Blocks connections that other devices start toward this computer. Your own browsing, email and apps work normally. Printers and other devices on your network can still be found.</description>
+  <service name="dhcpv6-client"/>
+  <service name="mdns"/>
+  <forward/>
+</zone>
