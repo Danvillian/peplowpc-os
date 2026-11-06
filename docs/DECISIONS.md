@@ -37,3 +37,6 @@ Each needs an owner call before the phase listed. Record the answer and the date
 | 2026-11-05 | Base | Fedora Atomic (Silverblue) with bootc, Fedora 45 |
 | 2026-11-05 | Desktop | GNOME |
 | 2026-11-05 | Build | GitHub Actions; daily image build; ISO on demand |
+| 2026-11-05 | Default browser (D3) | Firefox with PeplowPC policies stays until a true Linux build of PeplowPC Browser (own patches and branding) passes testing. No interim ungoogled-chromium swap. Needs a Linux build pipeline in the browser project first. |
+| 2026-11-05 | Disk encryption (D7) | On by default in the installer (kickstart `autopart --encrypted`, passphrase asked on the disk screen). Not hard-forced, because blocking at the end of an install is worse for users; the baseline check flags unencrypted installs. TPM2 unlock still planned. |
+| 2026-11-05 | Secure Boot on Hyper-V | Fedora 45 boots with Secure Boot on using the "Microsoft UEFI Certificate Authority" template (verified). |

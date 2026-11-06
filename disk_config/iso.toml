@@ -1,6 +1,6 @@
 # PeplowPC OS installer (bootc-image-builder, --type anaconda-iso)
 #
-# The installer asks only about the disk (and offers "Encrypt my data").
+# The installer asks only about the disk, with encryption on by default (it asks for the passphrase).
 # Language, time zone and the user account are handled on first boot by GNOME's own
 # setup screens, which are friendlier for non-technical people.
 #
@@ -9,8 +9,16 @@
 
 [customizations.installer.kickstart]
 contents = """
+# Encrypt the disk by default (DECISIONS D7). No passphrase is stored here: the installer asks for one
+# on the disk screen. No clearpart, so existing data on the disk is never wiped without the user choosing it.
+autopart --type=btrfs --encrypted --luks-version=luks2
+
 %post --log=/root/peplowpc-post.log
 echo "Installed from ghcr.io/danvillian/peplowpc-os:stable"
+# Anaconda opens SSH in the default firewall zone during every install. PeplowPC OS blocks
+# all incoming connections except printer discovery and IPv6 setup, so take it back out.
+firewall-offline-cmd --zone=peplowpc --remove-service=ssh || true
+firewall-offline-cmd --zone=peplowpc --list-services
 %end
 """
 

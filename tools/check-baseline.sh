@@ -42,12 +42,16 @@ done
 section "Updates and trust"
 status_json="$(sudo bootc status --format=json 2>/dev/null)"
 info "Booted image: $(jq -r '.status.booted.image.image.image // "unknown"' <<<"$status_json")"
-info "Signature mode: $(jq -c '.spec.image.signature // "none"' <<<"$status_json")"
+origin="$(rpm-ostree status --json 2>/dev/null | jq -r '.deployments[] | select(.booted) | ."container-image-reference" // empty')"
+info "Booted origin: ${origin:-unknown}"
+check "Booted image requires PeplowPC signature" bash -c "[[ '$origin' == ostree-image-signed:* ]]"
+staged="$(rpm-ostree status --json 2>/dev/null | jq -r '.deployments[] | select(.staged) | ."container-image-reference" // empty')"
+[[ -n "$staged" ]] && info "Staged for next restart: $staged"
 check "Signed-update switch has run" test -f /var/lib/peplowpc/signed-switch.done
 check "Container policy rejects unsigned by default" bash -c "jq -e '.default[0].type == \"reject\"' /etc/containers/policy.json"
 check "PeplowPC public key installed" test -s /etc/pki/containers/peplowpc.pub
 check "Update timer enabled" systemctl is-enabled bootc-fetch-apply-updates.timer
-check "Update service never forces a reboot" bash -c "! systemctl cat bootc-fetch-apply-updates.service | grep -E '^ExecStart=.+--apply'"
+check "Update service never forces a reboot" bash -c "systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q 'bootc upgrade' && ! systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q -- '--apply'"
 check "rpm-ostree countme masked" bash -c "[[ \$(systemctl is-enabled rpm-ostree-countme.timer 2>&1) == masked ]]"
 
 section "Apps"
@@ -67,7 +71,9 @@ check "Firefox PeplowPC policies installed" bash -c "rpm -ql firefox | grep -q '
 
 section "Network"
 check "Firewall default zone is peplowpc" bash -c "[[ \$(sudo firewall-cmd --get-default-zone) == peplowpc ]]"
-info "Open services: $(sudo firewall-cmd --zone=peplowpc --list-services 2>/dev/null)"
+services="$(sudo firewall-cmd --zone=peplowpc --list-services 2>/dev/null)"
+info "Open services: $services"
+check "Firewall allows only mDNS and DHCPv6 in" test "$(tr ' ' '\n' <<<"$services" | sort | xargs)" = "dhcpv6-client mdns"
 check "DNS-over-TLS configured" bash -c "resolvectl status | grep -qi 'DNSOverTLS'"
 info "$(resolvectl status 2>/dev/null | grep -m1 -i 'Current DNS Server' | xargs)"
 check "Global DNS is Quad9" bash -c "resolvectl dns | grep -i global | grep -q '9.9.9.9\|149.112.112.112\|2620:fe::'"
@@ -82,10 +88,10 @@ info "Time sources: $(sudo chronyc -N authdata 2>/dev/null | awk 'NR>2{print $1\
 
 section "Kernel hardening"
 while IFS='=' read -r key want; do
-    key="$(xargs <<<"$key")"
-    want="$(xargs <<<"$want")"
-    [[ -z "$key" || "$key" == \#* ]] && continue
-    have="$(sysctl -n "$key" 2>/dev/null)"
+    [[ "$key" =~ ^[[:space:]]*(#|$) ]] && continue
+    key="${key//[[:space:]]/}"
+    want="${want//[[:space:]]/}"
+    have="$(sudo sysctl -n "$key" 2>/dev/null)"
     if [[ "$have" == "$want" ]]; then ok "sysctl $key = $want"; else bad "sysctl $key = ${have:-missing} (want $want)"; fi
 done </usr/lib/sysctl.d/60-peplowpc-hardening.conf
 check "Rare protocol modules blocked (dccp)" bash -c "modprobe -n -v dccp 2>&1 | grep -q '/bin/false'"
