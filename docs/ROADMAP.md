@@ -14,7 +14,9 @@ Goal: a signed image builds every day, installs in a VM, and every line in `SECU
 - [ ] First ISO from `build-iso.yml`.
 
 **Install and first boot (Hyper-V Gen 2, Secure Boot on)**
-- [ ] Installer shows only the disk step; "Encrypt my data" works and the boot splash asks for the passphrase in PeplowPC style.
+- [x] Installer asks for an encryption passphrase by default (2026-11-06).
+- [ ] **Boot splash fix:** on the disk-unlock screen the PeplowPC logo overlaps the passphrase prompt text and keyboard icon (photo 2026-11-06). Move the logo down: `WatermarkVerticalAlignment=.45` to about `.70` in `system_files/usr/share/plymouth/themes/peplowpc/peplowpc.plymouth`, and check it on both the normal boot and the unlock screen.
+- [ ] **Branded installer:** installer still shows Fedora's sidebar and logo (only the title says PeplowPC OS). Move to a container-built installer (`bootc-installer`) with PeplowPC artwork before any public release (Fedora trademark).
 - [ ] GNOME first-boot setup creates the user account.
 - [ ] Signed updates: after one restart `sudo rpm-ostree status` shows `ostree-image-signed:`, and it stays that way after `sudo peplowpc-update` plus another restart. (First test 2026-11-05 found a plain `bootc upgrade` undid it; fixed with `peplowpc-update`.)
 - [ ] `peplowpc-flatpak-setup` installed every starter app; `flatpak remotes` shows only `flathub-verified`.

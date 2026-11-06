@@ -44,9 +44,15 @@ status_json="$(sudo bootc status --format=json 2>/dev/null)"
 info "Booted image: $(jq -r '.status.booted.image.image.image // "unknown"' <<<"$status_json")"
 origin="$(rpm-ostree status --json 2>/dev/null | jq -r '.deployments[] | select(.booted) | ."container-image-reference" // empty')"
 info "Booted origin: ${origin:-unknown}"
-check "Booted image requires PeplowPC signature" bash -c "[[ '$origin' == ostree-image-signed:* ]]"
 staged="$(rpm-ostree status --json 2>/dev/null | jq -r '.deployments[] | select(.staged) | ."container-image-reference" // empty')"
 [[ -n "$staged" ]] && info "Staged for next restart: $staged"
+if [[ "$origin" == ostree-image-signed:* ]]; then
+    ok "Running image requires PeplowPC signature"
+elif [[ "$staged" == ostree-image-signed:* ]]; then
+    info "Signed updates are staged: restart to finish (not a failure)"
+else
+    bad "Signed updates not enabled (run: sudo peplowpc-update --ensure-signed)"
+fi
 check "Container policy rejects unsigned by default" bash -c "jq -e '.default[0].type == \"reject\"' /etc/containers/policy.json"
 check "PeplowPC public key installed" test -s /etc/pki/containers/peplowpc.pub
 check "Update timer enabled" systemctl is-enabled bootc-fetch-apply-updates.timer
@@ -84,7 +90,7 @@ check "Per-network Wi-Fi MAC" grep -q 'wifi.cloned-mac-address=stable' <<<"$nm_c
 check "Hostname not sent over DHCP (NM accepted key)" grep -q 'ipv4.dhcp-send-hostname=0' <<<"$nm_cfg"
 check "IPv6 privacy addresses" grep -q 'ipv6.ip6-privacy=2' <<<"$nm_cfg"
 check "Time from NTS sources" bash -c "sudo chronyc -N authdata | grep -q NTS"
-info "Time sources: $(sudo chronyc -N authdata 2>/dev/null | awk 'NR>2{print $1\"(\"$2\")\"}' | xargs)"
+info "Time sources: $(sudo chronyc -N authdata 2>/dev/null | awk 'NR>2 {printf "%s(%s) ", $1, $2}')"
 
 section "Kernel hardening"
 while IFS='=' read -r key want; do

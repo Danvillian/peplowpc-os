@@ -13,11 +13,16 @@ contents = """
 # on the disk screen. No clearpart, so existing data on the disk is never wiped without the user choosing it.
 autopart --type=btrfs --encrypted --luks-version=luks2
 
+# Leave the firewall exactly as the image ships it. Without this, Anaconda adds SSH to the
+# default zone during every install (seen in /var/log/anaconda/syslog, 2026-11-06).
+firewall --use-system-defaults
+
 %post --log=/root/peplowpc-post.log
 echo "Installed from ghcr.io/danvillian/peplowpc-os:stable"
-# Anaconda opens SSH in the default firewall zone during every install. PeplowPC OS blocks
-# all incoming connections except printer discovery and IPv6 setup, so take it back out.
-firewall-offline-cmd --zone=peplowpc --remove-service=ssh || true
+# Backup for the firewall line above: if the installer still wrote its own copy of our zone
+# (with SSH added), delete it so the zone from the image applies, and future image updates to
+# the zone take effect too. PeplowPC OS ships no /etc copy of this file.
+rm -fv /etc/firewalld/zones/peplowpc.xml /etc/firewalld/zones/peplowpc.xml.old
 firewall-offline-cmd --zone=peplowpc --list-services
 %end
 """
