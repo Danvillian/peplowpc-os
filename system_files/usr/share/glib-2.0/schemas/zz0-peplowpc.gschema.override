@@ -45,7 +45,7 @@ button-layout='appmenu:minimize,maximize,close'
 center-new-windows=true
 
 [org.gnome.shell]
-favorite-apps=['org.mozilla.firefox.desktop', 'org.mozilla.Thunderbird.desktop', 'org.gnome.Nautilus.desktop', 'org.libreoffice.LibreOffice.writer.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
+favorite-apps=['org.mozilla.firefox.desktop', 'org.mozilla.thunderbird_esr.desktop', 'org.gnome.Nautilus.desktop', 'org.libreoffice.LibreOffice.writer.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
 
 [org.gnome.login-screen]
 logo='/usr/share/pixmaps/peplowpc-gdm-logo.png'

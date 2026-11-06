@@ -21,7 +21,7 @@ Anything that could break printing, video calls, banking sites or hotel Wi-Fi is
 
 | Setting | Value | Why | File | Status |
 |---|---|---|---|---|
-| Signed system updates | Only images signed with the PeplowPC key; everything else rejected by default | Nobody can push a fake update, even by hijacking the download | `build.sh` (policy.json), `peplowpc-signed-switch` | untested |
+| Signed system updates | Only images signed with the PeplowPC key; everything else rejected by default. Re-checked after every boot and every update | Nobody can push a fake update, even by hijacking the download | `build.sh` (policy.json), `/usr/bin/peplowpc-update` | untested |
 | Automatic updates | Downloaded daily in the background, applied at next restart, never forced | Protection without surprise reboots | `bootc-fetch-apply-updates.service.d/60-peplowpc.conf` | untested |
 | App updates | Every 6 hours | Browser-like apps need fast fixes | `peplowpc-flatpak-update.timer` | untested |
 | App source | Flathub, verified publishers only; Fedora remote removed | Stops look-alike apps uploaded by impostors | `peplowpc-flatpak-setup` | untested |

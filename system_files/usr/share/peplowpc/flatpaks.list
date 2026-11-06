@@ -3,7 +3,7 @@
 # Firefox is part of the system image, not this list.
 
 # Everyday
-org.mozilla.Thunderbird          # Email
+org.mozilla.thunderbird_esr      # Email (long-term support edition; the old org.mozilla.Thunderbird ID is retired)
 org.libreoffice.LibreOffice      # Documents, spreadsheets, slides
 org.gnome.Papers                 # PDF viewer
 org.gnome.Loupe                  # Photos

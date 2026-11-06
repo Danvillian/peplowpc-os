@@ -85,7 +85,8 @@ Pull requests build the image but do not publish or sign it.
    Phase 0 checklist in `ROADMAP.md`. Useful commands:
 
    ```bash
-   sudo bootc status                      # which image, signed or not, staged update
+   sudo rpm-ostree status                 # first line should start with ostree-image-signed:
+   sudo peplowpc-update                   # update by hand (never use plain "bootc upgrade")
    systemctl status peplowpc-signed-switch peplowpc-flatpak-setup
    journalctl -b -u peplowpc-flatpak-setup
    flatpak remotes

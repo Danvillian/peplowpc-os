@@ -44,7 +44,8 @@ GitHub Actions (daily 09:17 UTC)
         v
 PeplowPC OS computer
   bootc-fetch-apply-updates.timer
-    bootc upgrade   (downloads, checks signature against /etc/pki/containers/peplowpc.pub, stages)
+    peplowpc-update   (makes sure updates are signed-only, then bootc upgrade: downloads, checks the
+                       signature against /etc/pki/containers/peplowpc.pub, stages)
   next restart -> new version
   problem? -> pick the previous entry in the boot menu, or `sudo bootc rollback`
 ```
@@ -74,8 +75,12 @@ Apps update separately through `peplowpc-flatpak-update.timer` (every 6 hours) a
    policy that **rejects** anything not covered by an explicit rule, and requires a PeplowPC signature for the
    PeplowPC image.
 5. The installer cannot know our key in advance, so a fresh install starts in "unverified" mode.
-   `peplowpc-signed-switch.timer` (3 minutes after boot, retrying every 30 minutes until it succeeds) runs
-   `bootc switch --enforce-container-sigpolicy`. From the next restart, every update must carry our signature.
+   `peplowpc-update` (run 3 minutes after every boot, every 6 hours, and by the daily update timer) checks
+   which image the next restart will use. If it is not the signed PeplowPC image, it runs
+   `bootc switch --enforce-container-sigpolicy`. It checks real state every time rather than a one-time
+   marker, because a plain `bootc upgrade` run before the first restart replaces the queued signed
+   deployment with an unverified one (found in testing, 2026-11-05). From then on, every update must carry
+   our signature. Admins should use `sudo peplowpc-update`, never plain `bootc upgrade`.
 
 If the private key leaks, an attacker could sign a malicious update. Key custody is DECISIONS D14.
 
@@ -85,7 +90,7 @@ If the private key leaks, an attacker could sign a malicious update. Key custody
 Installer: disk only ("Encrypt my data" offered)
   -> first boot: GNOME setup (language, keyboard, privacy, Wi-Fi, user account)
   -> background, by timer, so login is never delayed:
-       peplowpc-signed-switch     (3 min)  require signed updates from now on
+       peplowpc-signed-switch     (3 min, then every 6 h)  require signed updates (peplowpc-update --ensure-signed)
        peplowpc-flatpak-setup     (2 min)  Flathub (verified only) + starter apps; retries hourly,
                                            gives up on an unavailable app after about a day
 ```

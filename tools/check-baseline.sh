@@ -47,11 +47,11 @@ info "Booted origin: ${origin:-unknown}"
 check "Booted image requires PeplowPC signature" bash -c "[[ '$origin' == ostree-image-signed:* ]]"
 staged="$(rpm-ostree status --json 2>/dev/null | jq -r '.deployments[] | select(.staged) | ."container-image-reference" // empty')"
 [[ -n "$staged" ]] && info "Staged for next restart: $staged"
-check "Signed-update switch has run" test -f /var/lib/peplowpc/signed-switch.done
 check "Container policy rejects unsigned by default" bash -c "jq -e '.default[0].type == \"reject\"' /etc/containers/policy.json"
 check "PeplowPC public key installed" test -s /etc/pki/containers/peplowpc.pub
 check "Update timer enabled" systemctl is-enabled bootc-fetch-apply-updates.timer
-check "Update service never forces a reboot" bash -c "systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q 'bootc upgrade' && ! systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q -- '--apply'"
+check "Updates go through peplowpc-update (signed, never forces a reboot)" bash -c "systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q peplowpc-update && ! systemctl show -p ExecStart bootc-fetch-apply-updates.service | grep -q -- '--apply'"
+check "Signed-update check timer enabled" systemctl is-enabled peplowpc-signed-switch.timer
 check "rpm-ostree countme masked" bash -c "[[ \$(systemctl is-enabled rpm-ostree-countme.timer 2>&1) == masked ]]"
 
 section "Apps"

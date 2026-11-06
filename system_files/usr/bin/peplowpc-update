@@ -1,0 +1,45 @@
+#!/usr/bin/bash
+# PeplowPC OS system updates. Used by the daily update timer, shortly after every boot, and by hand:
+#   sudo peplowpc-update                  download the latest signed update (applied at next restart)
+#   sudo peplowpc-update --ensure-signed  only make sure future updates require the PeplowPC signature
+# Never restarts the computer. Use this instead of plain "bootc upgrade", which can drop signature checking.
+set -euo pipefail
+
+[[ $EUID -eq 0 ]] || { echo "Run with sudo: sudo peplowpc-update" >&2; exit 1; }
+
+INFO=/usr/share/peplowpc/image-info.json
+ref="$(jq -r '."image-ref" + ":" + ."image-tag"' "$INFO")"
+want="ostree-image-signed:docker://${ref}"
+mode="${1:-}"
+
+if [[ ! -s /etc/pki/containers/peplowpc.pub ]]; then
+    echo "This image has no PeplowPC signing key (local test build); updating without signature checks."
+    [[ "$mode" == --ensure-signed ]] && exit 0
+    exec bootc upgrade --quiet
+fi
+
+status="$(rpm-ostree status --json)"
+origin_of() { jq -r --arg sel "$1" '[.deployments[] | select(.[$sel])][0]."container-image-reference" // empty' <<<"$status"; }
+booted="$(origin_of booted)"
+staged="$(origin_of staged)"
+next="${staged:-$booted}"
+
+# 1. The next restart must use the signed PeplowPC image. If anything (a fresh install, a manual
+#    "bootc upgrade") left it unverified, switch back. The switch also fetches the latest image.
+if [[ "$next" != "$want" ]]; then
+    echo "Next restart would use: ${next:-unknown}"
+    echo "Requiring signed updates: $want"
+    bootc switch --enforce-container-sigpolicy "$ref"
+    exit 0
+fi
+
+# 2. Signed image is staged but not running yet: wait for the restart rather than risk replacing it.
+if [[ "$booted" != "$want" ]]; then
+    echo "Signed updates are staged and take effect at the next restart."
+    exit 0
+fi
+
+[[ "$mode" == --ensure-signed ]] && { echo "Signed updates already required."; exit 0; }
+
+# 3. Normal case: running signed, fetch and stage the latest signed update.
+bootc upgrade --quiet

@@ -16,7 +16,7 @@ Goal: a signed image builds every day, installs in a VM, and every line in `SECU
 **Install and first boot (Hyper-V Gen 2, Secure Boot on)**
 - [ ] Installer shows only the disk step; "Encrypt my data" works and the boot splash asks for the passphrase in PeplowPC style.
 - [ ] GNOME first-boot setup creates the user account.
-- [ ] `peplowpc-signed-switch` ran: `sudo bootc status` shows the image with signature enforcement after one restart.
+- [ ] Signed updates: after one restart `sudo rpm-ostree status` shows `ostree-image-signed:`, and it stays that way after `sudo peplowpc-update` plus another restart. (First test 2026-11-05 found a plain `bootc upgrade` undid it; fixed with `peplowpc-update`.)
 - [ ] `peplowpc-flatpak-setup` installed every starter app; `flatpak remotes` shows only `flathub-verified`.
 - [ ] Branding: boot splash, login logo, wallpaper, lime accent in apps, Settings > About shows PeplowPC OS.
 

@@ -1,9 +1,9 @@
 [Unit]
-Description=PeplowPC: turn on signed updates shortly after first boot, retry until done
+Description=PeplowPC: check that updates require the PeplowPC signature, after boot and every 6 hours
 
 [Timer]
 OnBootSec=3min
-OnUnitInactiveSec=30min
+OnUnitActiveSec=6h
 
 [Install]
 WantedBy=timers.target

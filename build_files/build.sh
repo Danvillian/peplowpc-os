@@ -22,7 +22,7 @@ remove_if_installed() {
 # --------------------------------------------------------------------------------------------
 log "Copy PeplowPC system files"
 cp -a "$CTX/system_files/." /
-chmod 0755 /usr/libexec/peplowpc/*
+chmod 0755 /usr/libexec/peplowpc/* /usr/bin/peplowpc-update
 
 # --------------------------------------------------------------------------------------------
 log "Packages"

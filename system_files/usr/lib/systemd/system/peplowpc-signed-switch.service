@@ -1,12 +1,12 @@
 [Unit]
-Description=PeplowPC: require signed system updates from now on
+Description=PeplowPC: make sure system updates require the PeplowPC signature
 Documentation=https://github.com/Danvillian/peplowpc-os/blob/main/docs/ARCHITECTURE.md
 Wants=network-online.target
 After=network-online.target
-ConditionPathExists=!/var/lib/peplowpc/signed-switch.done
 ConditionPathExists=/etc/pki/containers/peplowpc.pub
-# Started by peplowpc-signed-switch.timer so it never delays login.
+# Started by peplowpc-signed-switch.timer so it never delays login. Checks the real state every
+# time (no one-time marker), so anything that undoes signed updates gets corrected.
 
 [Service]
 Type=oneshot
-ExecStart=/usr/libexec/peplowpc/signed-switch
+ExecStart=/usr/bin/peplowpc-update --ensure-signed
