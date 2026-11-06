@@ -1,0 +1,7 @@
+label: "PeplowPC-OS-Installer"
+grub2:
+  timeout: 5
+  entries:
+    - name: "Install PeplowPC OS"
+      linux: "/images/pxeboot/vmlinuz inst.stage2=hd:LABEL=PeplowPC-OS-Installer console=tty0 inst.graphical selinux=0 rhgb quiet"
+      initrd: "/images/pxeboot/initrd.img"

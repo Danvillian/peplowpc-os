@@ -95,6 +95,30 @@ Installer: disk only ("Encrypt my data" offered)
                                            gives up on an unavailable app after about a day
 ```
 
+## Installer
+
+The installer ISO is built from its own small container image, `installer/Containerfile`:
+
+```
+quay.io/fedora/fedora-bootc:45
+  + Anaconda installer, boot media tools, PeplowPC boot splash
+  + installer/files/: Anaconda profile (PeplowPC stylesheet, hides account/network/time screens),
+                      artwork, ISO boot menu (iso.yaml)
+  + interactive-defaults.ks: install the embedded signed image, encrypt by default,
+                             leave the firewall alone
+        |
+image-builder generic-iso --bootc-installer-payload-ref ghcr.io/danvillian/peplowpc-os:stable
+        |
+PeplowPC-OS-YYYYMMDD.iso  (offline install: the system image is inside the ISO)
+```
+
+This follows Fedora's current method (image-builder "generic-iso"; bootc-image-builder is deprecated).
+The older `anaconda-iso` path is still available as a fallback (`builder: legacy` in the ISO workflow,
+config in `disk_config/iso.toml`). It works but looks like Fedora's installer.
+
+Known upstream issue: a bootc system installed through Anaconda logs a failed
+`systemd-remount-fs.service` at boot (Fedora atomic-desktops tracker #72). Harmless so far; watch it.
+
 ## Why Fedora Atomic
 
 | | Fedora Atomic + bootc (chosen) | Debian live-build | Arch |

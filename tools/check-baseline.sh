@@ -34,6 +34,7 @@ else
     info "mokutil not present; check Secure Boot in the VM settings"
 fi
 check "Disk encryption (LUKS) in use" bash -c "lsblk -o TYPE | grep -q crypt"
+info "systemd-remount-fs: $(systemctl is-failed systemd-remount-fs.service 2>/dev/null) (known upstream issue on Anaconda installs; harmless so far)"
 check "Boot splash theme is peplowpc" bash -c "grep -qs 'Theme=peplowpc' /etc/plymouth/plymouthd.conf"
 for arg in init_on_alloc=1 init_on_free=1 slab_nomerge page_alloc.shuffle=1 randomize_kstack_offset=on vsyscall=none debugfs=off; do
     check "Kernel arg $arg" grep -qw -- "$arg" /proc/cmdline

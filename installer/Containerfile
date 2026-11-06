@@ -1,0 +1,48 @@
+# PeplowPC OS installer image.
+# A small Fedora bootc image that contains the Anaconda installer with PeplowPC branding.
+# image-builder turns it into the installer ISO ("generic-iso") and embeds the signed
+# PeplowPC OS image inside it, so installs work without a network connection.
+# Built by .github/workflows/build-iso.yml from the repository root:
+#   podman build -f installer/Containerfile --build-arg PAYLOAD_REF=ghcr.io/danvillian/peplowpc-os:stable .
+# Recipe follows Fedora's "bootc generic ISO" guide (image-builder docs, tested on Fedora 45).
+
+ARG FEDORA_VERSION=45
+FROM quay.io/fedora/fedora-bootc:${FEDORA_VERSION}
+
+ARG PAYLOAD_REF=ghcr.io/danvillian/peplowpc-os:stable
+
+# Installer, boot media tools and fonts. The grub2, isomd5sum and dracut-live packages cover the
+# generic-iso requirements in Fedora's image-builder docs (BIOS GRUB modules, implantisomd5, live boot).
+RUN dnf5 install -y \
+        anaconda \
+        anaconda-install-img-deps \
+        anaconda-dracut \
+        dracut-config-generic \
+        dracut-network \
+        net-tools \
+        grub2-efi-x64-cdboot \
+        grub2-pc-modules \
+        grub2-tools \
+        isomd5sum \
+        dracut-live \
+        plymouth \
+        plymouth-scripts \
+        plymouth-plugin-two-step \
+        plymouth-theme-spinner \
+        default-fonts-core-sans \
+        default-fonts-other-sans \
+        google-noto-sans-cjk-fonts \
+        xorrisofs \
+        squashfs-tools \
+        jq \
+    && dnf5 clean all
+
+# PeplowPC installer profile, stylesheet, artwork, ISO boot menu and installer environment tweaks.
+COPY installer/files/ /
+# Same boot splash as the installed system.
+COPY system_files/usr/share/plymouth/themes/peplowpc/ /usr/share/plymouth/themes/peplowpc/
+COPY installer/interactive-defaults.ks /usr/share/anaconda/interactive-defaults.ks.in
+COPY installer/build-installer.sh /usr/libexec/peplowpc-build-installer.sh
+
+RUN PAYLOAD_REF="${PAYLOAD_REF}" bash /usr/libexec/peplowpc-build-installer.sh \
+    && rm -f /usr/libexec/peplowpc-build-installer.sh

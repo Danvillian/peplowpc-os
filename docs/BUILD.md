@@ -56,7 +56,7 @@ Keep this on hardware and accounts you own, not Watchfire's (same rule as the br
 | What | How |
 |---|---|
 | System image | Automatic: every push to `main` and daily at 09:17 UTC. By hand: Actions > Build PeplowPC OS image > Run workflow. |
-| Installer ISO | Actions > Build PeplowPC OS installer (ISO) > Run workflow. Download the `peplowpc-os-iso` artifact (kept 7 days). |
+| Installer ISO | Actions > Build PeplowPC OS installer (ISO) > Run workflow. Choose **branded** (default) or **legacy** (fallback, Fedora-looking). Download the `peplowpc-os-iso-...` artifact (kept 7 days). Keep ISOs in `C:\ISO`: Hyper-V cannot read them from OneDrive. |
 | Local test build | On Fedora or WSL2 with podman: `tools/build-local.sh` (image), `tools/build-local.sh iso`, or `tools/build-local.sh qcow2`. |
 
 Pull requests build the image but do not publish or sign it.

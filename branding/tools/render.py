@@ -216,6 +216,26 @@ def preview(paths, out):
     print("wrote", out.relative_to(ROOT))
 
 
+def installer_sidebar():
+    """Anaconda installer sidebar background: ink, dot grid, lime glow and a tile echo at the bottom."""
+    W, H = 480, 1440
+    body = dot_grid(W, H, 26, 1.4, MUTED, 0.14)
+    body += glow(W * 0.5, H * 0.92, 520, LIME, 0.14, "g1")
+    size = 300
+    x, y = W / 2 - size / 2, H - size - 120
+    body += (f'<g transform="translate({x - 30:.0f} {y - 24:.0f}) scale({size/64:.3f})">'
+             f'<rect x="6" y="6" width="52" height="52" rx="14" fill="none" stroke="{LIME}" '
+             f'stroke-opacity="0.30" stroke-width="0.5" transform="rotate(6 32 32)"/></g>')
+    body += tile(x, y, size)
+    return svg_doc(W, H, body, bg=INK)
+
+
+def installer_topbar():
+    """Thin ink strip with the dot grid, tiled across the installer's top bar."""
+    W, H = 104, 104
+    return svg_doc(W, H, dot_grid(W, H, 26, 1.4, MUTED, 0.10), bg=INK)
+
+
 def main():
     bg = SYS / "usr/share/backgrounds/peplowpc"
     png(save("wallpaper-dots.svg", wallpaper_dots()), bg / "peplowpc-dots.png")
@@ -235,6 +255,12 @@ def main():
     pix = SYS / "usr/share/pixmaps"
     png(apps / "peplowpc-logo.svg", pix / "peplowpc-logo.png", width=256)
 
+    # Installer (Anaconda) artwork, used by installer/Containerfile
+    inst = ROOT / "installer" / "files" / "usr/share/anaconda/pixmaps/peplowpc"
+    png(save("installer-sidebar.svg", installer_sidebar()), inst / "sidebar-bg.png")
+    png(save("installer-topbar.svg", installer_topbar()), inst / "topbar-bg.png")
+    png(apps / "peplowpc-logo-text-dark.svg", inst / "sidebar-logo.png", width=440)
+
     # Review sheet
     tmp = ROOT / "branding" / "previews"
     tmp.mkdir(exist_ok=True)
@@ -242,12 +268,20 @@ def main():
     png(SRC / "wallpaper-tile.svg", tmp / "tile-small.png", width=760)
     png(apps / "peplowpc-logo-text-dark.svg", tmp / "about-dark.png", height=70)
     png(apps / "peplowpc-logo-text.svg", tmp / "about-light.png", height=70)
+    # Installer preview: sidebar with the logo placed as the stylesheet places it.
+    from PIL import Image
+    sb = Image.open(inst / "sidebar-bg.png").convert("RGBA").resize((240, 720))
+    lg = Image.open(inst / "sidebar-logo.png").convert("RGBA")
+    lg = lg.resize((200, round(lg.height * 200 / lg.width)))
+    sb.alpha_composite(lg, (20, 28))
+    sb.save(tmp / "installer-preview.png")
     preview([
         ("Desktop wallpaper (peplowpc-dots)", tmp / "dots-small.png"),
         ("Lock screen / alt wallpaper (peplowpc-tile)", tmp / "tile-small.png"),
         ("Boot splash + login logo", SYS / "usr/share/plymouth/themes/peplowpc/watermark.png"),
         ("Settings > About (dark)", tmp / "about-dark.png"),
         ("Settings > About (light)", tmp / "about-light.png"),
+        ("Installer sidebar (top part) and logo", tmp / "installer-preview.png"),
     ], ROOT / "branding" / "assets-preview.png")
 
 

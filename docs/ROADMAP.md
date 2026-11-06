@@ -15,8 +15,8 @@ Goal: a signed image builds every day, installs in a VM, and every line in `SECU
 
 **Install and first boot (Hyper-V Gen 2, Secure Boot on)**
 - [x] Installer asks for an encryption passphrase by default (2026-11-06).
-- [ ] **Boot splash fix:** on the disk-unlock screen the PeplowPC logo overlaps the passphrase prompt text and keyboard icon (photo 2026-11-06). Move the logo down: `WatermarkVerticalAlignment=.45` to about `.70` in `system_files/usr/share/plymouth/themes/peplowpc/peplowpc.plymouth`, and check it on both the normal boot and the unlock screen.
-- [ ] **Branded installer:** installer still shows Fedora's sidebar and logo (only the title says PeplowPC OS). Move to a container-built installer (`bootc-installer`) with PeplowPC artwork before any public release (Fedora trademark).
+- [ ] **Boot splash fix** (changed 2026-11-06: logo .62, spinner .82; verify on next install): on the disk-unlock screen the PeplowPC logo overlaps the passphrase prompt text and keyboard icon (photo 2026-11-06). Move the logo down: `WatermarkVerticalAlignment=.45` to about `.70` in `system_files/usr/share/plymouth/themes/peplowpc/peplowpc.plymouth`, and check it on both the normal boot and the unlock screen.
+- [ ] **Branded installer** (built 2026-11-06: `installer/Containerfile`, image-builder `generic-iso`; verify on next install): no Fedora logo or blue anywhere, lime buttons, encryption default still asked, firewall without SSH, offline install works.
 - [x] GNOME first-boot setup creates the user account.
 - [x] Signed updates: after one restart `sudo rpm-ostree status` shows `ostree-image-signed:`, and it stays that way after `sudo peplowpc-update` plus another restart. (First test 2026-11-05 found a plain `bootc upgrade` undid it; fixed with `peplowpc-update`.)
 - [x] `peplowpc-flatpak-setup` installed every starter app; `flatpak remotes` shows only `flathub-verified`.
