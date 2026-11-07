@@ -124,8 +124,10 @@ removes `selinux` and `console` from that list. Without this, every install had 
 Because the installer itself runs with SELinux off, files it writes into the new system's `/etc`
 (user lookup settings, keyboard layout) get no SELinux labels. With SELinux enforcing, polkit and the
 login screen cannot read them and boot stops at a text screen (Dell XPS 13 9300, 2026-11-06).
-`peplowpc-relabel.service` relabels `/etc` and `/var` once, early in the first boot, before those
-services start. `tools/check-baseline.sh` checks nothing in `/etc` is left unlabeled.
+`peplowpc-relabel.service` relabels `/etc` and `/var` (not home folders) once, on the first boot,
+before those services start. It must stay out of early boot: an early version created a startup
+ordering cycle that broke desktop logins (see the comment in the unit). `check-baseline.sh` fails
+if any startup ordering cycle was logged. `tools/check-baseline.sh` checks nothing in `/etc` is left unlabeled.
 
 Known upstream issue: a bootc system installed through Anaconda logs a failed
 `systemd-remount-fs.service` at boot (Fedora atomic-desktops tracker #72). Harmless so far; watch it.

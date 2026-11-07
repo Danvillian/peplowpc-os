@@ -34,6 +34,7 @@ else
     info "mokutil not present; check Secure Boot in the VM settings"
 fi
 check "SELinux enforcing" bash -c "[[ \$(getenforce 2>/dev/null) == Enforcing ]]"
+check "No startup ordering conflicts this boot" bash -c "! sudo journalctl -b --no-pager 2>/dev/null | grep -qi 'ordering cycle'"
 check "No files missing SELinux labels in /etc" bash -c "[[ -z \$(sudo find /etc -context '*unlabeled_t*' -print -quit 2>/dev/null) ]]"
 check "SELinux not disabled on the boot line" bash -c "! grep -qwE 'selinux=0|enforcing=0' /proc/cmdline"
 check "Disk encryption (LUKS) in use" bash -c "lsblk -o TYPE | grep -q crypt"

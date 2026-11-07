@@ -4,11 +4,14 @@ Documentation=https://github.com/Danvillian/peplowpc-os/blob/main/docs/ARCHITECT
 # The installer runs with SELinux off, so files it writes into /etc (user lookup settings,
 # keyboard layout) have no labels. With SELinux enforcing, polkit and the login screen are then
 # blocked from reading them and the computer stops at a text screen (found 2026-11-06, Dell XPS 13).
-# This runs early, before those services, and only until it has succeeded once.
-DefaultDependencies=no
+# This runs once, after early boot has finished and before polkit and the login screen start.
+#
+# Keep this in the normal (non-early) part of boot. An earlier version also ordered itself before
+# systemd-sysusers while running after local-fs.target. That is an ordering cycle (sysusers must
+# finish before local filesystems are ready), systemd broke it by dropping a boot job, and
+# /tmp/.X11-unix was then created by the login screen's user, so every desktop login failed.
 RequiresMountsFor=/etc /var
-After=local-fs.target
-Before=sysinit.target systemd-sysusers.service systemd-userdbd.service polkit.service accounts-daemon.service gdm.service
+Before=polkit.service accounts-daemon.service systemd-user-sessions.service display-manager.service gdm.service
 ConditionSecurity=selinux
 ConditionPathExists=!/var/lib/peplowpc/relabel.done
 
@@ -18,4 +21,4 @@ ExecStart=/usr/libexec/peplowpc/relabel
 RemainAfterExit=yes
 
 [Install]
-WantedBy=sysinit.target
+WantedBy=multi-user.target
