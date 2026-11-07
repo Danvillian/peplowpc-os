@@ -28,7 +28,8 @@ chmod 0755 /usr/libexec/peplowpc/* /usr/bin/peplowpc-update
 log "Packages"
 # jq: used by build steps and first-boot scripts.
 # firefox: the default browser lives in the signed image (DECISIONS D3), so make sure it is there.
-dnf5 -y install jq firefox
+# gnome-menus: needed by ArcMenu (the P app menu, built in the Containerfile's arcmenu stage).
+dnf5 -y install jq firefox gnome-menus
 # Crash reporters upload data off the machine. Not shipped (see SECURITY-BASELINE, Telemetry).
 remove_if_installed abrt abrt-desktop abrt-gui gnome-abrt
 # Fedora's add-on that stamps the Fedora logo on the wallpaper. PeplowPC OS has its own branding,
@@ -143,6 +144,20 @@ SCHEMA=/usr/share/glib-2.0/schemas/zz0-peplowpc.gschema.override
 if [[ ! -f /usr/share/applications/org.mozilla.firefox.desktop && -f /usr/share/applications/firefox.desktop ]]; then
     sed -i "s/'org.mozilla.firefox.desktop'/'firefox.desktop'/" "$SCHEMA"
 fi
+# Settings > About logo. Fedora builds GNOME Settings with its own logo files compiled in
+# (DISTRIBUTOR_LOGO), which win over LOGO= in os-release. Find those paths in the program itself
+# and put the PeplowPC wordmark there: cream text for the dark-mode file, ink text otherwise.
+mapfile -t about_logos < <(grep -aohE '/usr/share/pixmaps/[A-Za-z0-9_.-]+\.png' \
+    /usr/bin/gnome-control-center /usr/lib64/gnome-control-center/* 2>/dev/null | sort -u)
+for f in "${about_logos[@]}"; do
+    case "$f" in
+    *white* | *dark*) src=/usr/share/pixmaps/peplowpc-logo-text-dark.png ;;
+    *) src=/usr/share/pixmaps/peplowpc-logo-text.png ;;
+    esac
+    install -m0644 "$src" "$f"
+    echo "Settings logo: $f <- $(basename "$src")"
+done
+((${#about_logos[@]})) || echo "Note: no compiled-in Settings logo found; LOGO= in os-release applies."
 glib-compile-schemas --strict /usr/share/glib-2.0/schemas
 gtk-update-icon-cache -f /usr/share/icons/hicolor || true
 

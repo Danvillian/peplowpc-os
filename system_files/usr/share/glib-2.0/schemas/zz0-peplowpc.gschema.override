@@ -45,7 +45,23 @@ button-layout='appmenu:minimize,maximize,close'
 center-new-windows=true
 
 [org.gnome.shell]
+enabled-extensions=['arcmenu@arcmenu.com']
 favorite-apps=['org.mozilla.firefox.desktop', 'org.mozilla.thunderbird_esr.desktop', 'org.gnome.Nautilus.desktop', 'org.libreoffice.LibreOffice.writer.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
 
 [org.gnome.login-screen]
 logo='/usr/share/pixmaps/peplowpc-gdm-logo.png'
+
+# PeplowPC app menu (ArcMenu): P button in the top-left corner instead of Activities,
+# Windows 11 style layout, opened by the P button or the Windows/Super key.
+[org.gnome.shell.extensions.arcmenu]
+menu-layout='11'
+menu-button-appearance='Icon'
+menu-button-icon='/usr/share/icons/hicolor/scalable/apps/peplowpc-logo.svg'
+menu-button-icon-size=22
+position-in-panel='Left'
+show-activities-button=false
+arcmenu-hotkey=['Super_L']
+arcmenu-hotkey-overlay-key-enabled=true
+update-notifier-enabled=false
+pinned-apps=[{'id': 'org.mozilla.firefox.desktop'}, {'id': 'org.mozilla.thunderbird_esr.desktop'}, {'id': 'org.gnome.Nautilus.desktop'}, {'id': 'org.libreoffice.LibreOffice.writer.desktop'}, {'id': 'org.gnome.Software.desktop'}, {'id': 'org.gnome.Settings.desktop'}, {'id': 'org.gnome.TextEditor.desktop'}, {'id': 'org.gnome.Calculator.desktop'}, {'id': 'org.gnome.Loupe.desktop'}, {'id': 'org.gnome.Papers.desktop'}]
+eleven-layout-extra-shortcuts=[{'id': 'org.gnome.Nautilus.desktop'}, {'id': 'org.gnome.Settings.desktop'}]

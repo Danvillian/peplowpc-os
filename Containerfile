@@ -5,6 +5,17 @@
 ARG FEDORA_VERSION=45
 ARG BASE_IMAGE=quay.io/fedora-ostree-desktops/silverblue
 
+# ArcMenu (the P app menu), built from the vendored upstream release in vendor/arcmenu.
+# Separate stage so its build tools (make, gettext, glib2-devel) never reach the final image.
+FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS arcmenu
+ARG ARCMENU_VERSION=70.0
+COPY vendor/arcmenu/ /src/
+RUN dnf5 install -y make gettext glib2-devel findutils tar gzip \
+    && cd /src && sha256sum -c SHA256SUMS \
+    && tar -xzf "ArcMenu-v${ARCMENU_VERSION}.tar.gz" \
+    && make -C "ArcMenu-v${ARCMENU_VERSION}" install DESTDIR=/out VERSION="${ARCMENU_VERSION}" \
+    && test -f /out/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/metadata.json
+
 # Build context stage: nothing here ends up in the final image except what build.sh copies.
 FROM scratch AS ctx
 COPY build_files /build_files
@@ -19,6 +30,9 @@ ARG IMAGE_NAME=peplowpc-os
 ARG IMAGE_REGISTRY=ghcr.io/danvillian
 ARG IMAGE_TAG=stable
 ARG IMAGE_VERSION=dev
+
+# ArcMenu files: extension, settings schema, translations.
+COPY --from=arcmenu /out/usr/share/ /usr/share/
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \

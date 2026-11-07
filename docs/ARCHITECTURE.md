@@ -124,6 +124,14 @@ removes `selinux` and `console` from that list. Without this, every install had 
 Known upstream issue: a bootc system installed through Anaconda logs a failed
 `systemd-remount-fs.service` at boot (Fedora atomic-desktops tracker #72). Harmless so far; watch it.
 
+## Third-party code in the image
+
+Everything in the image comes from Fedora's signed packages, except:
+
+| What | Where | Why | Kept current by |
+|---|---|---|---|
+| ArcMenu (P app menu) | `vendor/arcmenu/`, built in the `arcmenu` stage of `Containerfile` | Not packaged by Fedora | Hand update each GNOME release (`vendor/arcmenu/README.md`); checksum-pinned |
+
 ## Why Fedora Atomic
 
 | | Fedora Atomic + bootc (chosen) | Debian live-build | Arch |

@@ -254,6 +254,10 @@ def main():
         print("wrote", (apps / n).relative_to(ROOT))
     pix = SYS / "usr/share/pixmaps"
     png(apps / "peplowpc-logo.svg", pix / "peplowpc-logo.png", width=256)
+    # Settings > About: Fedora's GNOME Settings shows fixed logo files compiled into the program;
+    # build.sh replaces them with these (ink text for light mode, cream text for dark mode).
+    png(apps / "peplowpc-logo-text.svg", pix / "peplowpc-logo-text.png", height=128)
+    png(apps / "peplowpc-logo-text-dark.svg", pix / "peplowpc-logo-text-dark.png", height=128)
 
     # Installer (Anaconda) artwork, used by installer/Containerfile
     inst = ROOT / "installer" / "files" / "usr/share/anaconda/pixmaps/peplowpc"
