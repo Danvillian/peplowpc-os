@@ -23,6 +23,7 @@ Same brand system as peplowpc.com and PeplowPC Browser (`../peplowpc-browser/bra
 | `system_files/usr/share/plymouth/themes/peplowpc/watermark.png` | Boot splash and disk-unlock screen (installed system and installer) |
 | `system_files/usr/share/pixmaps/peplowpc-gdm-logo.png` | Bottom of the login screen |
 | `system_files/usr/share/icons/hicolor/scalable/apps/peplowpc-logo*.svg` | Settings > System > About (from `LOGO=` in os-release) |
+| `system_files/usr/share/pixmaps/faces/peplowpc.png` | Account picture choice in Settings > System > Users and in first-time setup |
 | `system_files/etc/skel/.config/gtk-4.0/gtk.css` | Lime buttons, switches and highlights in apps |
 | `system_files/usr/share/glib-2.0/schemas/zz0-peplowpc.gschema.override` | Dark mode, wallpaper, dock apps, login logo |
 | `installer/files/usr/share/anaconda/pixmaps/peplowpc/` | Installer: sidebar background, sidebar wordmark, top bar, and `peplowpc.css` (colors) |

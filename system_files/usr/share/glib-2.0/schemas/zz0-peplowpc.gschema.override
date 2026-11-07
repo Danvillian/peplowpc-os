@@ -60,6 +60,8 @@ menu-button-icon='/usr/share/icons/hicolor/scalable/apps/peplowpc-logo.svg'
 menu-button-icon-size=22
 position-in-panel='Left'
 show-activities-button=false
+# Open on the desktop after login, not the GNOME overview with the dock (GNOME's default).
+hide-overview-on-startup=true
 arcmenu-hotkey=['Super_L']
 arcmenu-hotkey-overlay-key-enabled=true
 update-notifier-enabled=false

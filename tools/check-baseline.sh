@@ -115,6 +115,8 @@ check "USB autorun never" bash -c "[[ \"$(gs org.gnome.desktop.media-handling au
 check "Lock screen hides notifications" bash -c "[[ \"$(gs org.gnome.desktop.notifications show-in-lock-screen)\" == false ]]"
 check "Problem reporting off" bash -c "[[ \"$(gs org.gnome.desktop.privacy report-technical-problems)\" == false ]]"
 check "P app menu (ArcMenu) enabled" bash -c "gnome-extensions list --enabled 2>/dev/null | grep -qx arcmenu@arcmenu.com"
+check "Desktop shown after login (no overview)" bash -c "[[ \$(gsettings get org.gnome.shell.extensions.arcmenu hide-overview-on-startup 2>/dev/null) == true ]]"
+check "PeplowPC account picture available" test -f /usr/share/pixmaps/faces/peplowpc.png
 check "Lime accent CSS for apps" test -s "$HOME/.config/gtk-4.0/gtk.css"
 
 printf '\n\e[1mSummary:\e[0m %d passed, %d failed\n' "$pass" "$fail"

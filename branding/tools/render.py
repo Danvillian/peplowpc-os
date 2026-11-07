@@ -195,6 +195,21 @@ def icon():
     return svg_doc(64, 64, TILE_RECT.format(fill=LIME) + TILE_P.format(fill=INK))
 
 
+def avatar():
+    """Account picture: the P tile on the dark dot grid. GNOME shows it cropped to a circle,
+    so the tile and its outline echo stay well inside the middle of the square."""
+    W = 512
+    body = dot_grid(W, W, 24, 1.5, MUTED, 0.16)
+    body += glow(W / 2, W / 2, 250, LIME, 0.16, "g1")
+    size = 300
+    x = y = (W - size) / 2
+    body += (f'<g transform="translate({x - 22:.0f} {y - 16:.0f}) scale({size/64:.3f})">'
+             f'<rect x="6" y="6" width="52" height="52" rx="14" fill="none" stroke="{LIME}" '
+             f'stroke-opacity="0.35" stroke-width="0.6" transform="rotate(6 32 32)"/></g>')
+    body += tile(x, y, size)
+    return svg_doc(W, W, body, bg=INK)
+
+
 def preview(paths, out):
     """One image showing every asset, for review."""
     from PIL import Image, ImageDraw, ImageFont
@@ -258,6 +273,9 @@ def main():
     # build.sh replaces them with these (ink text for light mode, cream text for dark mode).
     png(apps / "peplowpc-logo-text.svg", pix / "peplowpc-logo-text.png", height=128)
     png(apps / "peplowpc-logo-text-dark.svg", pix / "peplowpc-logo-text-dark.png", height=128)
+
+    # Account picture, offered in Settings > Users and in first-time setup
+    png(save("avatar.svg", avatar()), pix / "faces/peplowpc.png", width=512)
 
     # Installer (Anaconda) artwork, used by installer/Containerfile
     inst = ROOT / "installer" / "files" / "usr/share/anaconda/pixmaps/peplowpc"
