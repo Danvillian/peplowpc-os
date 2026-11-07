@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+# One-time SELinux relabel of /etc and /var (see peplowpc-relabel.service for why).
+# restorecon only changes labels that are wrong, so on a healthy system this changes nothing.
+set -euo pipefail
+
+STAMP=/var/lib/peplowpc/relabel.done
+
+changed="$(restorecon -R -v /etc /var 2>&1 | tee /dev/stderr | grep -c 'Relabeled' || true)"
+install -d -m0755 "$(dirname "$STAMP")"
+date --iso-8601=seconds >"$STAMP"
+echo "SELinux relabel finished: ${changed} file(s) relabeled."

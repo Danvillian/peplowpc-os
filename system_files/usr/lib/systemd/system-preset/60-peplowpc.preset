@@ -1,3 +1,4 @@
+enable peplowpc-relabel.service
 enable peplowpc-flatpak-setup.timer
 enable peplowpc-flatpak-update.timer
 enable peplowpc-signed-switch.timer

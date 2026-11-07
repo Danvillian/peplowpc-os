@@ -121,6 +121,12 @@ Anaconda copies some boot settings from the installer into the installed system.
 removes `selinux` and `console` from that list. Without this, every install had SELinux switched off
 (found in testing 2026-11-06; `tools/check-baseline.sh` now checks SELinux is enforcing).
 
+Because the installer itself runs with SELinux off, files it writes into the new system's `/etc`
+(user lookup settings, keyboard layout) get no SELinux labels. With SELinux enforcing, polkit and the
+login screen cannot read them and boot stops at a text screen (Dell XPS 13 9300, 2026-11-06).
+`peplowpc-relabel.service` relabels `/etc` and `/var` once, early in the first boot, before those
+services start. `tools/check-baseline.sh` checks nothing in `/etc` is left unlabeled.
+
 Known upstream issue: a bootc system installed through Anaconda logs a failed
 `systemd-remount-fs.service` at boot (Fedora atomic-desktops tracker #72). Harmless so far; watch it.
 

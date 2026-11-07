@@ -174,6 +174,7 @@ chmod 0600 "/usr/lib/modules/$KVER/initramfs.img"
 # --------------------------------------------------------------------------------------------
 log "Services"
 systemctl enable \
+    peplowpc-relabel.service \
     peplowpc-flatpak-setup.timer \
     peplowpc-flatpak-update.timer \
     peplowpc-signed-switch.timer \
