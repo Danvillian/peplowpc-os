@@ -69,5 +69,7 @@ later item in `docs/ROADMAP.md`.
 
 ## Trademark care
 
-Say "based on Fedora". Do not use the Fedora logo or the word "Fedora" in the product name or
-marketing artwork (Fedora trademark guidelines). The branded installer exists for this reason.
+The product name is just "PeplowPC OS" everywhere it appears on screen (Settings > About, boot menu,
+text login). Credit Fedora in the README and in written material as "based on Fedora". Do not use the
+Fedora logo or the word "Fedora" in the product name or marketing artwork (Fedora trademark
+guidelines). The branded installer exists for this reason.

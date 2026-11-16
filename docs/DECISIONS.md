@@ -42,3 +42,5 @@ Each needs an owner call before the phase listed. Record the answer and the date
 | 2026-11-06 | App menu | P button in the top-left replaces Activities: ArcMenu v70.0 (Windows 11 layout, Super key opens it), vendored in `vendor/arcmenu` and pinned by checksum. Not in Fedora's repos, so it is updated by hand each GNOME release. |
 | 2026-11-06 | Installer name | Keep "anaconda bluesky" for internal testing; add `/.buildstamp` before any ISO goes to someone else. |
 | 2026-11-05 | Secure Boot on Hyper-V | Fedora 45 boots with Secure Boot on using the "Microsoft UEFI Certificate Authority" template (verified). |
+| 2026-11-15 | Product name on screen | "PeplowPC OS" only (Settings > About, boot menu, text login); "based on Fedora" credit stays in README and written material |
+| 2026-11-15 | Installer freshness | ISO rebuilds automatically after every successful image build on main; ISO file named after the image version inside it |

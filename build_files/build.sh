@@ -49,7 +49,9 @@ set_osr() { # key value
     fi
 }
 set_osr NAME "PeplowPC OS"
-set_osr PRETTY_NAME "PeplowPC OS (based on Fedora ${FEDORA_VERSION})"
+# PRETTY_NAME is what people see: Settings > About, the boot menu, the text login screen.
+# Credit to Fedora lives in README.md, not in the product name (decided 2026-11-15).
+set_osr PRETTY_NAME "PeplowPC OS"
 set_osr VARIANT "PeplowPC"
 set_osr VARIANT_ID "peplowpc"
 set_osr LOGO "peplowpc-logo"
