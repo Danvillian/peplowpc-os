@@ -1,7 +1,9 @@
 name: Build PeplowPC OS installer (ISO)
 
-# Run by hand when you want a new installer. Installed systems update themselves from the
-# signed image, so the ISO only needs rebuilding for installer fixes or a new Fedora release.
+# Runs automatically after every successful image build on main, so the newest ISO always
+# installs the newest image. (An installer carries a frozen copy of the OS from the day it was
+# built; on 2026-11-15 an old ISO installed an image from before the SELinux relabel fix.)
+# You can also run it by hand from the Actions tab.
 #
 # builder = branded (default): PeplowPC-branded installer built from installer/Containerfile with
 #           Fedora's image-builder ("generic-iso"). See docs/ARCHITECTURE.md, "Installer".
@@ -15,8 +17,19 @@ on:
         type: choice
         options: [branded, legacy]
         default: branded
+  workflow_run:
+    workflows: ["Build PeplowPC OS image"]
+    types: [completed]
+    branches: [main]
+
+# One ISO build at a time; a newer one waits instead of cancelling a build in progress.
+concurrency:
+  group: build-iso
+  cancel-in-progress: false
 
 env:
+  # Automatic runs have no inputs, so they build the branded installer.
+  BUILDER: ${{ inputs.builder || 'branded' }}
   IMAGE_NAME: peplowpc-os
   IMAGE_TAG: stable
   FEDORA_VERSION: "45"
@@ -25,6 +38,11 @@ env:
 
 jobs:
   iso:
+    # Automatic runs only after an image build that succeeded and was not a pull request build.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'pull_request')
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -36,6 +54,9 @@ jobs:
           df -h /
 
       - uses: actions/checkout@v4
+        with:
+          # Automatic runs use the same commit the image was built from.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: sigstore/cosign-installer@v3
         with:
@@ -48,11 +69,14 @@ jobs:
           cosign verify --key keys/cosign.pub "$image" >/dev/null
           for i in 1 2 3 4 5; do sudo podman pull "$image" && break; echo "Retry $i"; sleep 20; done
           sudo podman image exists "$image"
+          version="$(sudo podman image inspect --format '{{ index .Labels "org.opencontainers.image.version" }}' "$image")"
+          echo "Installer will carry image version ${version}"
           echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "version=${version:-unknown}" >> "$GITHUB_OUTPUT"
 
       # ---------------------------------------------------------------- branded installer
       - name: Build the branded installer image
-        if: inputs.builder == 'branded'
+        if: env.BUILDER == 'branded'
         run: |
           for i in 1 2 3; do
             sudo podman build --pull=newer \
@@ -65,7 +89,7 @@ jobs:
           exit 1
 
       - name: Pull image-builder (retries on network errors)
-        if: inputs.builder == 'branded'
+        if: env.BUILDER == 'branded'
         run: |
           for i in 1 2 3 4 5; do
             sudo podman pull "${IB_IMAGE}" && exit 0
@@ -74,7 +98,7 @@ jobs:
           exit 1
 
       - name: Build branded ISO
-        if: inputs.builder == 'branded'
+        if: env.BUILDER == 'branded'
         run: |
           mkdir -p output
           sudo podman run --rm --privileged --pull=never \
@@ -91,12 +115,12 @@ jobs:
 
       # ---------------------------------------------------------------- legacy installer
       - name: Point the legacy installer config at this repo's image
-        if: inputs.builder == 'legacy'
+        if: env.BUILDER == 'legacy'
         run: |
           sed -i "s|ghcr.io/danvillian/peplowpc-os:stable|${{ steps.img.outputs.image }}|g" disk_config/iso.toml
 
       - name: Pull bootc-image-builder (retries on network errors)
-        if: inputs.builder == 'legacy'
+        if: env.BUILDER == 'legacy'
         run: |
           for i in 1 2 3 4 5; do
             sudo podman pull "${BIB_IMAGE}" && exit 0
@@ -105,7 +129,7 @@ jobs:
           exit 1
 
       - name: Build legacy ISO
-        if: inputs.builder == 'legacy'
+        if: env.BUILDER == 'legacy'
         run: |
           mkdir -p output
           sudo podman run --rm --privileged --pull=never \
@@ -126,14 +150,15 @@ jobs:
           iso="$(find output -name '*.iso' | head -n1)"
           [[ -n "$iso" ]] || { echo "::error::No ISO produced"; exit 1; }
           suffix=""
-          [[ "${{ inputs.builder }}" == legacy ]] && suffix="-legacy"
-          mv "$iso" "output/PeplowPC-OS-$(date -u +%Y%m%d)${suffix}.iso"
+          [[ "${BUILDER}" == legacy ]] && suffix="-legacy"
+          # Named after the image version inside it, so you can tell which OS an ISO installs.
+          mv "$iso" "output/PeplowPC-OS-${{ steps.img.outputs.version }}${suffix}.iso"
           (cd output && sha256sum ./*.iso > SHA256SUMS)
           ls -lh output
 
       - uses: actions/upload-artifact@v4
         with:
-          name: peplowpc-os-iso-${{ inputs.builder }}
+          name: peplowpc-os-iso-${{ env.BUILDER }}-${{ steps.img.outputs.version }}
           path: |
             output/*.iso
             output/SHA256SUMS
